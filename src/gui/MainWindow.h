@@ -7,6 +7,7 @@
 
 class Net;
 class NetworkScene;
+class DrawDigitDialog;
 class TrainingData;
 class QGraphicsView;
 class QSpinBox;
@@ -34,6 +35,8 @@ private slots:
     void onCreateNetwork();
     void onPredict();
     void onInputNeuronClicked(size_t index);
+    void onDrawDigit();
+    void onDrawDigitApply(const std::vector<double> &values);
 
 private:
     QWidget *setupTopologyPanel(QWidget *parent);
@@ -58,6 +61,7 @@ private:
     QPushButton *m_browseButton;
     QPushButton *m_createNetButton;
     QPushButton *m_predictButton;
+    QPushButton *m_drawDigitButton;
     QLabel *m_statusLabel;
     QLabel *m_errorLabel;
     QLabel *m_outputLabel;

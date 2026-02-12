@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "DrawDigitDialog.h"
 #include "NetworkScene.h"
 #include "Net.h"
 #include "Neuron.h"
@@ -38,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto *splitter = new QSplitter(Qt::Horizontal);
 
-    // Left panel: controls
+    // Left panel: controls (scrollable)
     auto *leftPanel = new QFrame;
     leftPanel->setFrameShape(QFrame::StyledPanel);
     leftPanel->setMinimumWidth(280);
@@ -51,7 +52,13 @@ MainWindow::MainWindow(QWidget *parent)
     leftLayout->addWidget(trainingGroup);
     leftLayout->addStretch();
 
-    splitter->addWidget(leftPanel);
+    auto *leftScroll = new QScrollArea;
+    leftScroll->setWidget(leftPanel);
+    leftScroll->setWidgetResizable(true);
+    leftScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    leftScroll->setFrameShape(QFrame::NoFrame);
+
+    splitter->addWidget(leftScroll);
 
     // Right panel: network visualization
     setupNetworkView(m_centralWidget);
@@ -113,13 +120,13 @@ QWidget *MainWindow::setupTrainingPanel(QWidget *parent) {
     auto *paramsLayout = new QFormLayout(paramsGroup);
     m_epochsSpin = new QSpinBox;
     m_epochsSpin->setRange(1, 1000000);
-    m_epochsSpin->setValue(1000);
-    m_epochsSpin->setSingleStep(100);
+    m_epochsSpin->setValue(5000);
+    m_epochsSpin->setSingleStep(500);
     paramsLayout->addRow(tr("Epochs:"), m_epochsSpin);
 
     m_etaSpin = new QDoubleSpinBox;
     m_etaSpin->setRange(0.001, 1.0);
-    m_etaSpin->setValue(0.15);
+    m_etaSpin->setValue(0.1);
     m_etaSpin->setDecimals(3);
     m_etaSpin->setSingleStep(0.01);
     paramsLayout->addRow(tr("Learning rate (η):"), m_etaSpin);
@@ -144,11 +151,24 @@ QWidget *MainWindow::setupTrainingPanel(QWidget *parent) {
     m_predictInputsContainer = new QWidget(predictGroup);
     auto *inputsLayout = new QVBoxLayout(m_predictInputsContainer);
     inputsLayout->setContentsMargins(0, 0, 0, 0);
-    predictLayout->addWidget(m_predictInputsContainer);
+    auto *inputsScroll = new QScrollArea;
+    inputsScroll->setWidget(m_predictInputsContainer);
+    inputsScroll->setWidgetResizable(true);
+    inputsScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    inputsScroll->setMaximumHeight(120);
+    inputsScroll->setFrameShape(QFrame::NoFrame);
+    predictLayout->addWidget(inputsScroll);
+    auto *runLayout = new QHBoxLayout;
     m_predictButton = new QPushButton(tr("Run"));
     m_predictButton->setEnabled(false);
     connect(m_predictButton, &QPushButton::clicked, this, &MainWindow::onPredict);
-    predictLayout->addWidget(m_predictButton);
+    m_drawDigitButton = new QPushButton(tr("Draw Digit"));
+    m_drawDigitButton->setEnabled(false);
+    m_drawDigitButton->setToolTip(tr("Open drawing grid for 64-input (digit) networks"));
+    connect(m_drawDigitButton, &QPushButton::clicked, this, &MainWindow::onDrawDigit);
+    runLayout->addWidget(m_predictButton);
+    runLayout->addWidget(m_drawDigitButton);
+    predictLayout->addLayout(runLayout);
     m_outputLabel = new QLabel(tr("Output: —"));
     predictLayout->addWidget(m_outputLabel);
 
@@ -291,7 +311,6 @@ void MainWindow::onTrain() {
     std::thread worker([this, topology, epochs]() {
         int currentEpoch = 0;
         std::vector<double> inputVals, targetVals, resultVals;
-        const int updateInterval = 100;
 
         while (currentEpoch < epochs) {
             unsigned count = m_trainingData->getNextInputs(inputVals);
@@ -307,16 +326,6 @@ void MainWindow::onTrain() {
             m_trainingData->getTargetOutputs(targetVals);
             if (targetVals.size() == topology.back()) {
                 m_net->backPropagate(targetVals);
-            }
-
-            if (currentEpoch > 0 && currentEpoch % updateInterval == 0) {
-                double err = m_net->getRecentAverageError();
-                int epoch = currentEpoch;
-                QMetaObject::invokeMethod(this, [this, epoch, epochs, err]() {
-                    m_statusLabel->setText(tr("Training... (epoch %1 / %2)").arg(epoch).arg(epochs));
-                    m_errorLabel->setText(tr("Recent error: %1").arg(err));
-                    refreshNetworkVisualization();
-                }, Qt::QueuedConnection);
             }
         }
 
@@ -345,6 +354,7 @@ void MainWindow::refreshPredictInputs() {
         spin->deleteLater();
     }
     m_inputSpins.clear();
+    m_drawDigitButton->setEnabled(false);
     if (!m_net || m_net->getLayerCount() == 0) return;
     const size_t numInputs = m_net->getLayer(0).size() - 1;  // exclude bias
     auto *layout = m_predictInputsContainer->layout();
@@ -359,6 +369,7 @@ void MainWindow::refreshPredictInputs() {
         m_inputSpins.push_back(spin);
     }
     m_predictButton->setEnabled(true);
+    m_drawDigitButton->setEnabled(numInputs == 64);
 }
 
 void MainWindow::onCreateNetwork() {
@@ -407,6 +418,24 @@ void MainWindow::onInputNeuronClicked(size_t index) {
     }
     m_outputLabel->setText(outText);
     refreshPredictInputs();
+    refreshNetworkVisualization();
+}
+
+void MainWindow::onDrawDigit() {
+    if (!m_net || m_net->getLayer(0).size() - 1 != 64) return;
+    auto *dialog = new DrawDigitDialog(m_net.get(), this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dialog, &DrawDigitDialog::applyRequested, this, &MainWindow::onDrawDigitApply);
+    connect(dialog, &DrawDigitDialog::applyRequested, dialog, [dialog]() { dialog->accept(); });
+    dialog->show();
+}
+
+void MainWindow::onDrawDigitApply(const std::vector<double> &values) {
+    if (!m_net || values.size() != m_inputSpins.size()) return;
+    for (size_t i = 0; i < values.size() && i < m_inputSpins.size(); ++i) {
+        m_inputSpins[i]->setValue(values[i]);
+    }
+    onPredict();
     refreshNetworkVisualization();
 }
 
