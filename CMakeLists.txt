@@ -37,9 +37,14 @@ add_executable(NeuralNetworkGUI
     src/gui/NetworkScene.h
     src/gui/NeuronItem.cpp
     src/gui/NeuronItem.h
+    src/gui/DrawDigitWidget.cpp
+    src/gui/DrawDigitWidget.h
+    src/gui/DrawDigitDialog.cpp
+    src/gui/DrawDigitDialog.h
     ${CORE_SOURCES}
 )
 target_link_libraries(NeuralNetworkGUI PRIVATE Qt6::Widgets)
 
 # Training data generators
 add_executable(GenerateXorData tools/generateXorData.cpp)
+add_executable(GenerateDigitsData tools/generateDigitsData.cpp)

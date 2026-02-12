@@ -4,6 +4,7 @@
 
 #include "Connection.h"
 #include <cstdlib>
+#include <cmath>
 
 Connection::Connection()  {
     weight = randomWeight();
@@ -11,5 +12,6 @@ Connection::Connection()  {
 }
 
 double Connection::randomWeight() {
-    return rand() / double(RAND_MAX);
+    // Small centered weights to avoid tanh saturation (was [0,1] -> all outputs went to 1)
+    return (rand() / double(RAND_MAX) - 0.5) * 2.0 / sqrt(2.0);  // ~[-0.7, 0.7]
 }

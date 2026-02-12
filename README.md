@@ -52,7 +52,14 @@ cmake --build build
 ./build/GenerateXorData > data/xor.txt
 ```
 
-Or use the built-in generator `tools/generateXorData.cpp`.
+**Handwritten digits (8×8, 10 classes):**
+```sh
+./build/GenerateDigitsData > data/digits.txt
+```
+Uses embedded synthetic patterns (500 samples). For the full 1,797-sample UCI dataset, download `optdigits.tes` from [UCI](https://archive.ics.uci.edu/ml/machine-learning-databases/optdigits/), place in `data/`, and run:
+```sh
+./build/GenerateDigitsData data/optdigits.tes > data/digits.txt
+```
 
 ## Usage (GUI)
 
