@@ -13,7 +13,7 @@ namespace {
 const double NeuronRadius = 20.0;
 const double LayerSpacing = 120.0;
 const double MinLayerHeight = 80.0;
-} // namespace
+}
 
 NetworkScene::NetworkScene(QObject *parent) : QGraphicsScene(parent) {
     setItemIndexMethod(QGraphicsScene::NoIndex);

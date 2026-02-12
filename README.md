@@ -1,80 +1,73 @@
-# XOR Gate Neural Network in Cpp
-This repository showcases a basic neural network designed to learn and predict the output of an XOR-Gate. It serves as an excellent introductory project for anyone looking to dive into the world of neural networks. Start your journey here with this simple yet fundamental 'Hello, World' example in neural networking.
+# Neural Network in C++
 
-<img width="457" alt="Screenshot 2023-09-22 at 5 05 50 PM" src="https://github.com/activcoding/XOR-Gate-Neural-Network-in-Cpp/assets/83090745/c4f6738b-8c86-4e2a-b9be-dd9079b7a72c">
+A neural network with Qt GUI for training and visualization. Includes XOR gate and support for more datasets (e.g. handwritten digits).
 
-<img width="457" alt="NeuralNet" src="https://github.com/activcoding/XOR-Gate-Neural-Network-in-Cpp/assets/83090745/ed81b4b4-7806-45c8-aae7-fee69d442b5f">
+## Project Structure
 
-
-## Usage
-1. **Fork** and **clone** the repository.
-2. Follow the steps to generate the training data.
-3. Execute the code using the following instructions.
-
-## Generate Training Data for a XOR-Gate
-#### 1. C++ file:
-```cpp
-#include <iostream>
-#include <cmath>
-#include <cstdlib>
-
-using namespace std;
-  
-int main() {
-  cout << "topology: 2 4 1" << endl;
-  for(int i = 10000; i >= 0; --i) {
-    int n1 = (int) (2.0 * rand() / double(RAND_MAX));
-    int n2 = (int) (2.0 * rand() / double(RAND_MAX));
-    int t = n1 ^ n2; // bitwise XOR
-    cout << "in: " << n1 << ".0 " << n2 << ".0 " << endl;
-    cout << "out: " << t << ".0" << endl;
-  }
-}
 ```
-#### 2. Compile the file:
-```sh
-g++ yourFileName.cpp -o makeTraingSamples
-```
-#### 3. Run the compiled executable:
-```sh
-./makeTraingSamples > trainingData.txt
+Neural-Network-CPP/
+├── src/
+│   ├── core/           # Neural network (Net, Neuron, Connection, TrainingData)
+│   └── gui/            # Qt UI (MainWindow, NetworkScene, NeuronItem)
+├── tools/              # Training data generators
+│   └── generateXorData.cpp
+├── data/               # Training data files
+│   └── xor.txt
+├── main.cpp            # CLI entry point
+├── main_gui.cpp        # GUI entry point
+└── CMakeLists.txt
 ```
 
-#### 4. Move the trainingData.txt file into the project's folder.
+## Build
 
-## Running the XOR Gate Neural Network
-
-#### 1. Navigate to the project directory:
-```sh
-cd Neural-Network-CPP
-```
-
-#### 2. Install Qt (required for GUI, on macOS with Homebrew):
-```sh
-brew install qt
-```
-
-#### 3. Build the project:
 ```sh
 mkdir -p build && cd build
 cmake ..
 cmake --build .
 ```
 
-#### 4. Run the project:
+**macOS (Qt):**
+```sh
+cmake -B build -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
+cmake --build build
+```
+
+## Run
 
 **GUI (recommended):**
 ```sh
-./NeuralNetworkGUI
+./build/NeuralNetworkGUI
 ```
-Launch the visual interface to configure topology, select training data, adjust learning rate and momentum, and watch the network train in real time.
 
 **CLI:**
 ```sh
-./XORGate_NeuralNetwork
+# Run from project root so data/xor.txt is found
+./build/NeuralNetCLI
 ```
-Uses `shortTrainingData.txt` by default. Ensure the file exists in the current working directory.
 
-If the training file cannot be found, please ensure the file is in the same directory from which you are executing the command. For example, if you are using CLion, you may need to move the file into the build folder.
+## Generate Training Data
 
-Feel free to reach out if you have any questions or encounter any issues. Happy coding!
+**XOR gate:**
+```sh
+./build/GenerateXorData > data/xor.txt
+```
+
+Or use the built-in generator `tools/generateXorData.cpp`.
+
+## Usage (GUI)
+
+1. **Topology** – Configure layers (default: 2-4-1 for XOR)
+2. **Training Data** – Browse to select a `.txt` file (e.g. `data/xor.txt`)
+3. **Load from file** – Load topology from the training file
+4. **Create Network** – Build network from topology
+5. **Train** – Train on the selected data
+6. **Test / Predict** – Enter inputs and run a forward pass
+7. **Click input neurons** – Edit values directly in the visualization
+
+## Data Format
+
+```
+topology: <input_count> <hidden_1> <hidden_2> ... <output_count>
+in: <value1> <value2> ...
+out: <target1> <target2> ...
+```

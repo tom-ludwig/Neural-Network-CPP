@@ -17,7 +17,7 @@ void showVectorVals(std::string label, std::vector<double> &v) {
 }
 
 int main() {
-    TrainingData trainingData("trainingData.txt");
+    TrainingData trainingData("data/xor.txt");
     std::cout << "Finished reading training data" << std::endl;
     // e.g., { 3, 2, 1 } means 3 neurons in the input layer, 2 in the hidden layer, and 1 in the output layer
     std::vector<unsigned> topology;

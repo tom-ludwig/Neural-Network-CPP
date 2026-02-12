@@ -125,10 +125,3 @@ const Layer &Net::getLayer(size_t index) const {
     //    cout << resultValue << endl;
     //}
 }
-
-
-
-
-
-
-
