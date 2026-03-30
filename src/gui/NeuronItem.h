@@ -13,7 +13,8 @@ public:
                const QColor &fillColor, double radius, QGraphicsItem *parent = nullptr);
 
     void setValue(double value);
-    QRectF boundingRect() const override;
+
+    [[nodiscard]] QRectF boundingRect() const override;
 
 signals:
     void inputClicked(size_t index);

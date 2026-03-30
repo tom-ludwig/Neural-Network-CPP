@@ -1,17 +1,19 @@
+#include <cassert>
+#include <cstddef>
 #include <iostream>
-#include "vector"
+#include <string>
+#include <vector>
 #include "Net.h"
 #include "TrainingData.h"
-#include "cassert"
 
 // The command for listing all file in the terminal is: ls -a
 // if you only want to see files with a specific ending, e.g., .txt, you can use: ls -a *.txt
 
 using namespace std;
 
-void showVectorVals(std::string label, std::vector<double> &v) {
+void showVectorVals(const std::string &label, std::vector<double> &v) {
     std::cout << label << " ";
-    for (unsigned i = 0; i < v.size(); ++i) {
+    for (std::size_t i = 0; i < v.size(); ++i) {
         std::cout << v[i] << " ";
     }
 }
@@ -35,7 +37,7 @@ int main() {
         std::cout << std::endl << "Pass: " << trainingPass;
 
         // Get new input data and feed it forward;
-        if (trainingData.getNextInputs(inputVals) != topology[0]) {
+        if (trainingData.getNextInputs(inputVals) != static_cast<std::size_t>(topology[0])) {
             break;
         }
         showVectorVals("; Inputs:", inputVals);

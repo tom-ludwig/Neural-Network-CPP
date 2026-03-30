@@ -39,9 +39,9 @@ public:
 
 private:
     unsigned m_myIndex;
-    double m_outputVal;
+    double m_outputVal{};
     vector<Connection> m_outputWeights;
-    double m_gradient; // used by the backpropagation, gradient of the error function, which is the slope of the error function
+    double m_gradient{}; // used by the backpropagation, gradient of the error function, which is the slope of the error function
 
     static double eta;
     static double alpha;
@@ -50,7 +50,7 @@ private:
     static double ReLu(double x);
     static double transferFunction(double x); // tanh - output range [-1.0..1.0], smooth curve
     static double transferFunctionDerivative(double x); // tanh derivative
-    double sumDOW(const vector<Neuron> &nextLayer) const; // sum of the derivatives of the weights of the next layer
+    [[nodiscard]] double sumDOW(const vector<Neuron> &nextLayer) const; // sum of the derivatives of the weights of the next layer
 };
 
 

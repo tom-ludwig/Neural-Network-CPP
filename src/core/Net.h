@@ -26,7 +26,7 @@ public:
 
     [[nodiscard]] double getRecentAverageError() const;
 
-    [[maybe_unused]] void printPrediction(vector<double> &inputValues);
+    [[maybe_unused]] void printPrediction(const vector<double> &inputValues);
 
     // For visualization
     [[nodiscard]] size_t getLayerCount() const;

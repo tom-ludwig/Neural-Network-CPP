@@ -2,7 +2,6 @@
 #include <QPen>
 #include <QBrush>
 #include <QPainter>
-#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneHoverEvent>
 #include <QStyleOptionGraphicsItem>
 
@@ -24,7 +23,7 @@ NeuronItem::NeuronItem(size_t layer, size_t index, double value, bool isInput, b
     }
 }
 
-void NeuronItem::setValue(double value) {
+void NeuronItem::setValue(const double value) {
     if (qAbs(m_value - value) > 1e-9) {
         m_value = value;
         update();
@@ -32,7 +31,7 @@ void NeuronItem::setValue(double value) {
 }
 
 QRectF NeuronItem::boundingRect() const {
-    return QRectF(-m_radius - 2, -m_radius - 2, (m_radius + 2) * 2, (m_radius + 2) * 2);
+    return {-m_radius - 2, -m_radius - 2, (m_radius + 2) * 2, (m_radius + 2) * 2};
 }
 
 void NeuronItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -43,9 +42,9 @@ void NeuronItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setBrush(QBrush(m_fillColor));
     painter->drawEllipse(QPointF(0, 0), m_radius, m_radius);
 
-    QString valueStr = QString::number(m_value, 'f', 2);
+    const QString valueStr = QString::number(m_value, 'f', 2);
     painter->setPen(Qt::black);
-    QFont font = painter->font();
+    QFont font(painter->font());
     font.setPointSize(8);
     painter->setFont(font);
     painter->drawText(boundingRect(), Qt::AlignCenter, valueStr);

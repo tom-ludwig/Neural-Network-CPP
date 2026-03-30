@@ -1,5 +1,5 @@
 //
-// Generates handwritten digits training data (pure C++, no Python).
+// Generates handwritten digits training data.
 // Uses embedded synthetic 8x8 digit patterns + optional UCI file.
 //
 // Usage:
@@ -16,6 +16,7 @@
 #include <vector>
 #include <cstdlib>
 #include <cctype>
+#include <cstddef>
 
 namespace {
 
@@ -46,7 +47,7 @@ const unsigned char DIGIT_PATTERNS[10][64] = {
     { 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,10,14,14,12, 0, 0,  0, 0,14, 0, 0,14, 0, 0,  0, 0,10,14,14,14, 0, 0, 0,  0, 0, 0, 0, 0,14, 0, 0,  0, 0, 0, 0, 6,14, 0, 0,  0, 0, 0, 4,14, 4, 0, 0,  0, 0, 0, 0, 0, 0, 0 },
 };
 
-void emitSample(const double pixels[64], int label) {
+void emitSample(const double pixels[64], const int label) {
     std::cout << "in:";
     for (int i = 0; i < 64; ++i) {
         std::cout << " " << pixels[i];
@@ -58,7 +59,7 @@ void emitSample(const double pixels[64], int label) {
     std::cout << "\n";
 }
 
-void generateEmbedded(int samplesPerDigit) {
+void generateEmbedded(const int samplesPerDigit) {
     std::cout << "topology: 64 32 10\n";
     for (int digit = 0; digit < 10; ++digit) {
         for (int s = 0; s < samplesPerDigit; ++s) {
@@ -77,7 +78,7 @@ void generateEmbedded(int samplesPerDigit) {
     }
 }
 
-bool readUciFile(const std::string& path) {
+bool readUciFile(const std::string &path) {
     std::ifstream f(path);
     if (!f.is_open()) return false;
 
@@ -97,10 +98,10 @@ bool readUciFile(const std::string& path) {
             vals.push_back(v);
         }
         if (vals.size() < 65) continue;
-        int label = vals[64];
+        const int label = vals[64];
         if (label < 0 || label > 9) continue;
         double pixels[64];
-        for (int i = 0; i < 64; ++i) {
+        for (std::size_t i = 0; i < 64; ++i) {
             int v = vals[i];
             if (v > 16) v = 16;
             pixels[i] = v / 16.0;

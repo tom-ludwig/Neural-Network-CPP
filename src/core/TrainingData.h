@@ -6,6 +6,7 @@
 #define XORGATE_NEURALNETWORK_TRAININGDATA_H
 
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -13,15 +14,15 @@
 
 class TrainingData {
 public:
-    TrainingData(const std::string filename);
+    explicit TrainingData(const std::string &filename);
 
-    bool isEof(void);
+    static bool isEof();
 
     void getTopology(std::vector<unsigned> &topology);
 
-    unsigned getNextInputs(std::vector<double> &inputVals);
+    std::size_t getNextInputs(std::vector<double> &inputVals);
 
-    unsigned getTargetOutputs(std::vector<double> &targetOutputVals);
+    std::size_t getTargetOutputs(std::vector<double> &targetOutputVals);
 
     void reset();
 

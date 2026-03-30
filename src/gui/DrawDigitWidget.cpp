@@ -1,6 +1,7 @@
 #include "DrawDigitWidget.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <cstddef>
 
 DrawDigitWidget::DrawDigitWidget(QWidget *parent) : QWidget(parent) {
     setFixedSize(CELL_PIXELS * GRID_SIZE + 2, CELL_PIXELS * GRID_SIZE + 2);
@@ -10,19 +11,19 @@ DrawDigitWidget::DrawDigitWidget(QWidget *parent) : QWidget(parent) {
 
 std::vector<double> DrawDigitWidget::getValues() const {
     std::vector<double> v(64);
-    for (int i = 0; i < 64; ++i) v[i] = m_cells[i];
+    for (std::size_t i = 0; i < 64; ++i) v[i] = m_cells[i];
     return v;
 }
 
 void DrawDigitWidget::setValues(const std::vector<double> &values) {
-    for (size_t i = 0; i < 64 && i < values.size(); ++i) {
+    for (std::size_t i = 0; i < 64 && i < values.size(); ++i) {
         m_cells[i] = qBound(0.0, values[i], 1.0);
     }
     update();
 }
 
 void DrawDigitWidget::clear() {
-    for (int i = 0; i < 64; ++i) m_cells[i] = 0.0;
+    for (double & m_cell : m_cells) m_cell = 0.0;
     update();
 }
 
@@ -32,16 +33,16 @@ void DrawDigitWidget::paintEvent(QPaintEvent *event) {
     p.fillRect(rect(), Qt::white);
     p.setPen(Qt::lightGray);
     for (int i = 0; i <= GRID_SIZE; ++i) {
-        int pos = i * CELL_PIXELS + 1;
+        const int pos = i * CELL_PIXELS + 1;
         p.drawLine(pos, 1, pos, height() - 1);
         p.drawLine(1, pos, width() - 1, pos);
     }
     for (int r = 0; r < GRID_SIZE; ++r) {
         for (int c = 0; c < GRID_SIZE; ++c) {
-            int idx = r * GRID_SIZE + c;
-            double v = m_cells[idx];
+            const int idx = r * GRID_SIZE + c;
+            const double v = m_cells[idx];
             if (v > 0.01) {
-                int gray = static_cast<int>(255 * (1.0 - v));
+                const int gray = static_cast<int>(255 * (1.0 - v));
                 p.fillRect(c * CELL_PIXELS + 2, r * CELL_PIXELS + 2,
                            CELL_PIXELS - 1, CELL_PIXELS - 1,
                            QColor(gray, gray, gray));
@@ -66,18 +67,17 @@ void DrawDigitWidget::mouseMoveEvent(QMouseEvent *event) {
     }
 }
 
-void DrawDigitWidget::setCellAt(const QPoint &pos, double value) {
-    int idx = cellAt(pos);
-    if (idx >= 0 && m_cells[idx] != value) {
-        m_cells[idx] = value;
+void DrawDigitWidget::setCellAt(const QPoint &pos, const double value) {
+    if (const int idx = cellAt(pos); idx >= 0 && m_cells[static_cast<std::size_t>(idx)] != value) {
+        m_cells[static_cast<std::size_t>(idx)] = value;
         update();
         emit valuesChanged();
     }
 }
 
-int DrawDigitWidget::cellAt(const QPoint &pos) const {
-    int c = (pos.x() - 1) / CELL_PIXELS;
-    int r = (pos.y() - 1) / CELL_PIXELS;
+int DrawDigitWidget::cellAt(const QPoint &pos) {
+    const int c = (pos.x() - 1) / CELL_PIXELS;
+    const int r = (pos.y() - 1) / CELL_PIXELS;
     if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
         return r * GRID_SIZE + c;
     }

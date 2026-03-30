@@ -4,18 +4,21 @@
 
 #include "Net.h"
 #include "Neuron.h"
-#include <iostream>
 #include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <iostream>
 
 Net::Net(const vector<unsigned int> &topology)
     : m_error(0.0)
     , m_recentAverageError(0.0)
     , m_recentAverageSmoothingFactor(100.0)
 {
-    unsigned numLayers = topology.size();
-    for (unsigned layerNum = 0; layerNum < numLayers; ++layerNum) {
+    const std::size_t numLayers = topology.size();
+    for (std::size_t layerNum = 0; layerNum < numLayers; ++layerNum) {
         m_layers.push_back(Layer());
-        unsigned numOutputs = layerNum == topology.size() - 1 ? 0 : topology[layerNum + 1];
+        const unsigned numOutputs =
+            layerNum == topology.size() - 1 ? 0 : topology[layerNum + 1];
 
         for (unsigned neuronNum = 0; neuronNum <= topology[layerNum]; ++neuronNum) {
             m_layers.back().push_back(Neuron(numOutputs, neuronNum));
@@ -31,16 +34,16 @@ void Net::feedForward(const vector<double> &inputValues) {
     assert(inputValues.size() == m_layers[0].size() - 1);
 
     // assing (latch) the input values into the input neurons
-    for (unsigned input = 0; input < inputValues.size(); ++input) {
+    for (std::size_t input = 0; input < inputValues.size(); ++input) {
         m_layers[0][input].setOutputVal(inputValues[input]);
     }
 
     // note that we are starting at the second layer, because the first layer is the input layer
-    for (unsigned layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
+    for (std::size_t layerNum = 1; layerNum < m_layers.size(); ++layerNum) {
         Layer &prevLayer = m_layers[layerNum - 1];
         // Skip bias neuron: prevLayer neurons have m_outputWeights only for non-bias
         // targets; bias output stays 1.0 from constructor
-        for (unsigned neurons = 0; neurons < m_layers[layerNum].size() - 1; ++neurons) {
+        for (std::size_t neurons = 0; neurons < m_layers[layerNum].size() - 1; ++neurons) {
             m_layers[layerNum][neurons].feedForward(prevLayer);
         }
     }
@@ -52,13 +55,13 @@ void Net::backPropagate(const vector<double> &targetValues) {
     Layer &outputLayer = m_layers.back();
     m_error = 0.0;
 
-    for (unsigned neuron = 0; neuron < outputLayer.size() - 1; ++neuron) {
-        double delta = targetValues[neuron] - outputLayer[neuron].getOutputVal(); // delta is the difference between the target value and the actual value
+    for (std::size_t neuron = 0; neuron < outputLayer.size() - 1; ++neuron) {
+        const double delta = targetValues[neuron] - outputLayer[neuron].getOutputVal(); // delta is the difference between the target value and the actual value
         m_error += delta * delta;
     }
 
     // calculate the average error squared
-    m_error /= outputLayer.size() - 1;
+    m_error /= static_cast<double>(outputLayer.size() - 1);
     m_error = sqrt(m_error); // RMS(Root Mean Square Error)
 
     // implement a recent average measurement
@@ -66,7 +69,7 @@ void Net::backPropagate(const vector<double> &targetValues) {
                            (m_recentAverageSmoothingFactor + 1.0);
 
     // Calculate output layer gradients
-    for (unsigned neuron = 0; neuron < outputLayer.size() - 1; ++neuron) {
+    for (std::size_t neuron = 0; neuron < outputLayer.size() - 1; ++neuron) {
         // TODO: Move this to the upper loop
         outputLayer[neuron].calculateOutputGradients(targetValues[neuron]);
     }
@@ -74,7 +77,7 @@ void Net::backPropagate(const vector<double> &targetValues) {
 
     // Calculate gradients on hidden layers
     // TODO: Check if the loop starts at the output layer or the first hidden layer;
-    for (unsigned layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
+    for (std::size_t layerNum = m_layers.size() - 2; layerNum > 0; --layerNum) {
         Layer &hiddenLayer = m_layers[layerNum];
         Layer &nextLayer = m_layers[layerNum + 1];
 
@@ -83,12 +86,12 @@ void Net::backPropagate(const vector<double> &targetValues) {
         }
     }
 
-    for (unsigned layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
+    for (std::size_t layerNum = m_layers.size() - 1; layerNum > 0; --layerNum) {
         Layer &currentLayer = m_layers[layerNum];
         Layer &prevLayer = m_layers[layerNum - 1];
         // Skip bias neuron: it has no trainable incoming weights; prevLayer neurons
         // only have m_outputWeights for non-bias targets (size = topology[layerNum])
-        for (unsigned n = 0; n < currentLayer.size() - 1; ++n) {
+        for (std::size_t n = 0; n < currentLayer.size() - 1; ++n) {
             currentLayer[n].updateInputWeights(prevLayer);
         }
     }
@@ -97,7 +100,7 @@ void Net::backPropagate(const vector<double> &targetValues) {
 void Net::getResults(vector<double> &resultValues) const {
     resultValues.clear();
 
-    for (unsigned n = 0; n < m_layers.back().size() - 1; ++n) {
+    for (std::size_t n = 0; n < m_layers.back().size() - 1; ++n) {
         resultValues.push_back(m_layers.back()[n].getOutputVal());
     }
 }
@@ -114,7 +117,7 @@ const Layer &Net::getLayer(size_t index) const {
     return m_layers[index];
 }
 
-[[maybe_unused]] void Net::printPrediction(vector<double> &inputValues) {
+[[maybe_unused]] void Net::printPrediction(const vector<double> &inputValues) {
     vector<double> resultValues;
     feedForward(inputValues);
     getResults(resultValues);

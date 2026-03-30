@@ -20,9 +20,9 @@ signals:
     void applyRequested(const std::vector<double> &values);
 
 private:
-    void onPredict();
+    void onPredict() const;
     void onApply();
-    void onClear();
+    void onClear() const;
 
     Net *m_net;
     DrawDigitWidget *m_grid;

@@ -5,14 +5,13 @@
 #include <QPen>
 #include <QBrush>
 #include <QColor>
-#include <QtMath>
 #include <QGraphicsLineItem>
 #include <vector>
 
 namespace {
-const double NeuronRadius = 20.0;
-const double LayerSpacing = 120.0;
-const double MinLayerHeight = 80.0;
+constexpr double NeuronRadius = 20.0;
+constexpr double LayerSpacing = 120.0;
+constexpr double MinLayerHeight = 80.0;
 }
 
 NetworkScene::NetworkScene(QObject *parent) : QGraphicsScene(parent) {
@@ -41,15 +40,16 @@ void NetworkScene::paintNetwork() {
     }
 
     double totalHeight = qMax(MinLayerHeight * static_cast<double>(maxNeurons - 1), MinLayerHeight);
-    double neuronSpacing = maxNeurons > 1 ? totalHeight / (maxNeurons - 1) : 0;
+    double neuronSpacing =
+        maxNeurons > 1 ? totalHeight / static_cast<double>(maxNeurons - 1) : 0.0;
 
     // Get weight range for connection coloring
     double minWeight = 0, maxWeight = 0;
     bool firstWeight = true;
     for (size_t l = 0; l < numLayers - 1; ++l) {
         const auto &layer = m_net->getLayer(l);
-        for (size_t n = 0; n < layer.size(); ++n) {
-            const auto weights = layer[n].getOutputWeights();
+        for (const auto & n : layer) {
+            const auto &weights = n.getOutputWeights();
             for (const auto &conn : weights) {
                 if (firstWeight) {
                     minWeight = maxWeight = conn.weight;
@@ -69,12 +69,13 @@ void NetworkScene::paintNetwork() {
 
     for (size_t l = 0; l < numLayers; ++l) {
         size_t neuronCount = m_net->getLayer(l).size();
-        double layerHeight = (neuronCount > 1) ? (neuronCount - 1) * neuronSpacing : 0;
-        double startY = -layerHeight / 2;
+        const double layerHeight =
+            (neuronCount > 1) ? static_cast<double>(neuronCount - 1) * neuronSpacing : 0.0;
+        const double startY = -layerHeight / 2.0;
 
         for (size_t n = 0; n < neuronCount; ++n) {
-            double x = l * LayerSpacing;
-            double y = startY + n * neuronSpacing;
+            const double x = static_cast<double>(l) * LayerSpacing;
+            const double y = startY + static_cast<double>(n) * neuronSpacing;
             positions[l].push_back({x, y});
         }
     }
@@ -85,15 +86,15 @@ void NetworkScene::paintNetwork() {
         const auto &nextPositions = positions[l + 1];
 
         for (size_t n = 0; n < layer.size(); ++n) {
-            const auto weights = layer[n].getOutputWeights();
+            const auto &weights = layer[n].getOutputWeights();
             for (size_t c = 0; c < weights.size() && c < nextPositions.size(); ++c) {
-                double w = weights[c].weight;
-                double t = (w - minWeight) / weightRange;
-                int r = static_cast<int>(t * 255);
-                int g = 100;
-                int b = static_cast<int>((1 - t) * 255);
+                const double w = weights[c].weight;
+                const double t = (w - minWeight) / weightRange;
+                const int r = static_cast<int>(t * 255);
+                constexpr int g = 100;
+                const int b = static_cast<int>((1 - t) * 255);
                 QColor color(qBound(0, r, 255), qBound(0, g, 255), qBound(0, b, 255));
-                double thickness = 0.5 + 2.0 * (0.5 + 0.5 * (w - minWeight) / weightRange);
+                const double thickness = 0.5 + 2.0 * (0.5 + 0.5 * (w - minWeight) / weightRange);
 
                 auto *line = addLine(
                     positions[l][n].x + NeuronRadius,

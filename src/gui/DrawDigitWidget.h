@@ -10,7 +10,7 @@ class DrawDigitWidget : public QWidget {
 public:
     explicit DrawDigitWidget(QWidget *parent = nullptr);
 
-    std::vector<double> getValues() const;  // 64 values, row-major, 0.0-1.0
+    [[nodiscard]] std::vector<double> getValues() const;  // 64 values, row-major, 0.0-1.0
     void setValues(const std::vector<double> &values);
     void clear();
 
@@ -24,7 +24,7 @@ protected:
 
 private:
     void setCellAt(const QPoint &pos, double value);
-    int cellAt(const QPoint &pos) const;  // -1 if out of bounds
+    static int cellAt(const QPoint &pos);  // -1 if out of bounds
 
     static constexpr int GRID_SIZE = 8;
     static constexpr int CELL_PIXELS = 32;

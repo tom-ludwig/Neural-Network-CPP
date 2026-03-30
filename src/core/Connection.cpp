@@ -13,5 +13,5 @@ Connection::Connection()  {
 
 double Connection::randomWeight() {
     // Small centered weights to avoid tanh saturation (was [0,1] -> all outputs went to 1)
-    return (rand() / double(RAND_MAX) - 0.5) * 2.0 / sqrt(2.0);  // ~[-0.7, 0.7]
+    return (rand() / static_cast<double>(RAND_MAX) - 0.5) * 2.0 / std::sqrt(2.0);  // ~[-0.7, 0.7]
 }

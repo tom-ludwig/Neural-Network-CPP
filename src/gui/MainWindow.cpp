@@ -4,15 +4,11 @@
 #include "Net.h"
 #include "Neuron.h"
 #include "TrainingData.h"
-#include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QGroupBox>
 #include <QFormLayout>
 #include <QPushButton>
-#include <QSpinBox>
 #include <QDoubleSpinBox>
-#include <QLineEdit>
-#include <QListWidget>
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QFileDialog>
@@ -25,6 +21,7 @@
 #include <QApplication>
 #include <QTimer>
 #include <QMetaObject>
+#include <cstddef>
 #include <thread>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -95,7 +92,7 @@ QWidget *MainWindow::setupTopologyPanel(QWidget *parent) {
     connect(loadBtn, &QPushButton::clicked, this, &MainWindow::onLoadTopologyFromFile);
 
     // Default topology for XOR
-    for (int v : {2, 4, 1}) {
+    for (const int v : {2, 4, 1}) {
         auto *item = new QListWidgetItem(QString::number(v));
         item->setFlags(item->flags() | Qt::ItemIsEditable);
         m_topologyList->addItem(item);
@@ -120,8 +117,8 @@ QWidget *MainWindow::setupTrainingPanel(QWidget *parent) {
     auto *paramsLayout = new QFormLayout(paramsGroup);
     m_epochsSpin = new QSpinBox;
     m_epochsSpin->setRange(1, 1000000);
-    m_epochsSpin->setValue(5000);
-    m_epochsSpin->setSingleStep(500);
+    m_epochsSpin->setValue(50);
+    m_epochsSpin->setSingleStep(10);
     paramsLayout->addRow(tr("Epochs:"), m_epochsSpin);
 
     m_etaSpin = new QDoubleSpinBox;
@@ -198,7 +195,7 @@ void MainWindow::setupNetworkView(QWidget *parent) {
 }
 
 void MainWindow::onBrowseTrainingData() {
-    QString path = QFileDialog::getOpenFileName(
+    const QString path = QFileDialog::getOpenFileName(
         this,
         tr("Select Training Data"),
         QString(),
@@ -210,7 +207,7 @@ void MainWindow::onBrowseTrainingData() {
 }
 
 void MainWindow::onLoadTopologyFromFile() {
-    QString path = m_trainingDataPath->text().trimmed();
+    const QString path = m_trainingDataPath->text().trimmed();
     if (path.isEmpty()) {
         QMessageBox::information(this, tr("Load Topology"),
             tr("Please select a training data file first."));
@@ -230,15 +227,15 @@ void MainWindow::onLoadTopologyFromFile() {
     }
 }
 
-void MainWindow::onAddLayer() {
-    int count = m_topologyList->count();
-    int value = (count > 0) ? 4 : 2;
+void MainWindow::onAddLayer() const {
+    const int count = m_topologyList->count();
+    const int value = (count > 0) ? 4 : 2;
     auto *item = new QListWidgetItem(QString::number(value));
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     m_topologyList->addItem(item);
 }
 
-void MainWindow::onRemoveLayer() {
+void MainWindow::onRemoveLayer() const {
     if (m_topologyList->count() > 1) {
         delete m_topologyList->takeItem(m_topologyList->count() - 1);
     }
@@ -255,7 +252,7 @@ std::vector<unsigned> MainWindow::getTopologyFromUi() const {
 }
 
 bool MainWindow::validateAndPrepareTraining() {
-    auto topology = getTopologyFromUi();
+    const auto topology = getTopologyFromUi();
     if (topology.size() < 2) {
         QMessageBox::warning(this, tr("Training"),
             tr("Topology must have at least 2 layers (input and output)."));
@@ -268,7 +265,7 @@ bool MainWindow::validateAndPrepareTraining() {
             return false;
         }
     }
-    QString path = m_trainingDataPath->text().trimmed();
+    const QString path = m_trainingDataPath->text().trimmed();
     if (path.isEmpty()) {
         QMessageBox::warning(this, tr("Training"),
             tr("Please select a training data file."));
@@ -300,8 +297,8 @@ bool MainWindow::validateAndPrepareTraining() {
 void MainWindow::onTrain() {
     if (!validateAndPrepareTraining()) return;
 
-    auto topology = getTopologyFromUi();
-    int epochs = m_epochsSpin->value();
+    const auto topology = getTopologyFromUi();
+    const int epochs = m_epochsSpin->value();
 
     refreshPredictInputs();
     refreshNetworkVisualization();
@@ -313,13 +310,13 @@ void MainWindow::onTrain() {
         std::vector<double> inputVals, targetVals, resultVals;
 
         while (currentEpoch < epochs) {
-            unsigned count = m_trainingData->getNextInputs(inputVals);
-            if (count != topology[0]) {
+            std::size_t count = m_trainingData->getNextInputs(inputVals);
+            if (count != static_cast<std::size_t>(topology[0])) {
                 currentEpoch++;
                 if (currentEpoch >= epochs) break;
                 m_trainingData->reset();
                 count = m_trainingData->getNextInputs(inputVals);
-                if (count != topology[0]) break;
+                if (count != static_cast<std::size_t>(topology[0])) break;
             }
             m_net->feedForward(inputVals);
             m_net->getResults(resultVals);
@@ -341,7 +338,7 @@ void MainWindow::onTrain() {
     worker.detach();
 }
 
-void MainWindow::refreshNetworkVisualization() {
+void MainWindow::refreshNetworkVisualization() const {
     if (m_net) {
         m_networkScene->setNet(m_net.get());
     } else {
@@ -373,7 +370,7 @@ void MainWindow::refreshPredictInputs() {
 }
 
 void MainWindow::onCreateNetwork() {
-    auto topology = getTopologyFromUi();
+    const auto topology = getTopologyFromUi();
     if (topology.size() < 2) {
         QMessageBox::warning(this, tr("Create Network"),
             tr("Topology must have at least 2 layers (input and output)."));
@@ -430,7 +427,7 @@ void MainWindow::onDrawDigit() {
     dialog->show();
 }
 
-void MainWindow::onDrawDigitApply(const std::vector<double> &values) {
+void MainWindow::onDrawDigitApply(const std::vector<double> &values) const {
     if (!m_net || values.size() != m_inputSpins.size()) return;
     for (size_t i = 0; i < values.size() && i < m_inputSpins.size(); ++i) {
         m_inputSpins[i]->setValue(values[i]);
@@ -439,7 +436,7 @@ void MainWindow::onDrawDigitApply(const std::vector<double> &values) {
     refreshNetworkVisualization();
 }
 
-void MainWindow::onPredict() {
+void MainWindow::onPredict() const {
     if (!m_net) return;
     std::vector<double> inputVals;
     for (auto *spin : m_inputSpins) {

@@ -1,7 +1,7 @@
 #include "DrawDigitDialog.h"
 #include "DrawDigitWidget.h"
 #include "Net.h"
-#include <QVBoxLayout>
+#include <cstddef>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
@@ -42,26 +42,26 @@ std::vector<double> DrawDigitDialog::getDrawnValues() const {
     return m_grid->getValues();
 }
 
-void DrawDigitDialog::onPredict() {
+void DrawDigitDialog::onPredict() const {
     if (!m_net || m_net->getLayerCount() == 0) return;
-    auto vals = m_grid->getValues();
+    const auto vals = m_grid->getValues();
     if (vals.size() != 64) return;
     m_net->feedForward(vals);
     std::vector<double> results;
     m_net->getResults(results);
-    int best = 0;
-    for (size_t i = 1; i < results.size(); ++i) {
-        if (results[i] > results[best]) best = static_cast<int>(i);
+    std::size_t best = 0;
+    for (std::size_t i = 1; i < results.size(); ++i) {
+        if (results[i] > results[best]) best = i;
     }
     m_resultLabel->setText(tr("Result: Digit %1 (confidence: %2)")
-        .arg(best).arg(results[best], 0, 'f', 2));
+        .arg(static_cast<int>(best)).arg(results[best], 0, 'f', 2));
 }
 
 void DrawDigitDialog::onApply() {
     emit applyRequested(m_grid->getValues());
 }
 
-void DrawDigitDialog::onClear() {
+void DrawDigitDialog::onClear() const {
     m_grid->clear();
     m_resultLabel->setText(tr("Result: —"));
 }

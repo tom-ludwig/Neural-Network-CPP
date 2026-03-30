@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-TrainingData::TrainingData(const std::string filename) : m_filename(filename) {
+TrainingData::TrainingData(const std::string &filename) : m_filename(filename) {
     m_trainingDataFile.open(filename.c_str());
     if (!m_trainingDataFile.is_open()) {
         std::cerr << "Error: training data file not found: " << filename << std::endl;
@@ -62,11 +62,11 @@ void TrainingData::getTopology(std::vector<unsigned> &topology) {
     }
 }
 
-bool TrainingData::isEof(void) {
+bool TrainingData::isEof() {
     return false;
 }
 
-unsigned TrainingData::getNextInputs(std::vector<double> &inputVals) {
+std::size_t TrainingData::getNextInputs(std::vector<double> &inputVals) {
     inputVals.clear();
 
     std::string line;
@@ -85,7 +85,7 @@ unsigned TrainingData::getNextInputs(std::vector<double> &inputVals) {
     return inputVals.size();
 }
 
-unsigned TrainingData::getTargetOutputs(std::vector<double> &targetOutputVals) {
+std::size_t TrainingData::getTargetOutputs(std::vector<double> &targetOutputVals) {
     targetOutputVals.clear();
 
     std::string line;
