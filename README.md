@@ -10,7 +10,7 @@ A neural network with Qt GUI for training and visualization. Includes XOR gate a
 2. **Training Data** – Browse to select a `.txt` file (e.g. `data/xor.txt` or `data/digits.txt`)
 3. **Load from file** – Load topology from the training file
 4. **Create Network** – Build network from topology
-5. **Train** – Train on the selected data
+5. **Train** – Train on the selected data (Do not set the epchos to high on big data sets or many neurons since the training is running on your CPU it will likely freez the application)
 6. **Test / Predict** – Enter inputs and run a forward pass
 7. **Click input neurons** – Edit values directly in the visualization
 

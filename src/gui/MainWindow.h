@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -32,6 +33,7 @@ private slots:
     void onAddLayer() const;
     void onRemoveLayer() const;
     void onTrain();
+    void onCancelTraining();
     void onCreateNetwork();
     void onPredict() const;
     void onInputNeuronClicked(size_t index);
@@ -58,6 +60,7 @@ private:
     QDoubleSpinBox *m_etaSpin{};
     QDoubleSpinBox *m_alphaSpin{};
     QPushButton *m_trainButton{};
+    QPushButton *m_cancelButton{};
     QPushButton *m_browseButton{};
     QPushButton *m_createNetButton{};
     QPushButton *m_predictButton{};
@@ -70,6 +73,7 @@ private:
 
     std::unique_ptr<Net> m_net;
     std::unique_ptr<TrainingData> m_trainingData;
+    std::atomic<bool> m_cancelTraining{false};
 };
 
 #endif // MAINWINDOW_H

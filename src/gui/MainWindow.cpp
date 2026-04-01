@@ -78,14 +78,12 @@ QWidget *MainWindow::setupTopologyPanel(QWidget *parent) {
     m_topologyList->setEditTriggers(QAbstractItemView::DoubleClicked);
     layout->addWidget(m_topologyList);
 
-    auto *btnLayout = new QHBoxLayout;
     auto *addBtn = new QPushButton(tr("Add layer"));
     auto *removeBtn = new QPushButton(tr("Remove layer"));
     auto *loadBtn = new QPushButton(tr("Load from file"));
-    btnLayout->addWidget(addBtn);
-    btnLayout->addWidget(removeBtn);
-    btnLayout->addWidget(loadBtn);
-    layout->addLayout(btnLayout);
+    layout->addWidget(addBtn);
+    layout->addWidget(removeBtn);
+    layout->addWidget(loadBtn);
 
     connect(addBtn, &QPushButton::clicked, this, &MainWindow::onAddLayer);
     connect(removeBtn, &QPushButton::clicked, this, &MainWindow::onRemoveLayer);
@@ -136,11 +134,14 @@ QWidget *MainWindow::setupTrainingPanel(QWidget *parent) {
     paramsLayout->addRow(tr("Momentum (α):"), m_alphaSpin);
 
     m_trainButton = new QPushButton(tr("Train"));
+    m_cancelButton = new QPushButton(tr("Cancel"));
+    m_cancelButton->setEnabled(false);
     m_createNetButton = new QPushButton(tr("Create Network"));
     m_statusLabel = new QLabel(tr("Ready"));
     m_errorLabel = new QLabel;
 
     connect(m_trainButton, &QPushButton::clicked, this, &MainWindow::onTrain);
+    connect(m_cancelButton, &QPushButton::clicked, this, &MainWindow::onCancelTraining);
     connect(m_createNetButton, &QPushButton::clicked, this, &MainWindow::onCreateNetwork);
 
     auto *predictGroup = new QGroupBox(tr("Test / Predict"), parent);
@@ -174,7 +175,10 @@ QWidget *MainWindow::setupTrainingPanel(QWidget *parent) {
     layout->addWidget(dataGroup);
     layout->addWidget(paramsGroup);
     layout->addWidget(m_createNetButton);
-    layout->addWidget(m_trainButton);
+    auto *trainLayout = new QHBoxLayout;
+    trainLayout->addWidget(m_trainButton);
+    trainLayout->addWidget(m_cancelButton);
+    layout->addLayout(trainLayout);
     layout->addWidget(m_statusLabel);
     layout->addWidget(m_errorLabel);
     layout->addWidget(predictGroup);
@@ -191,7 +195,6 @@ void MainWindow::setupNetworkView(QWidget *parent) {
     m_networkView->setDragMode(QGraphicsView::ScrollHandDrag);
     m_networkView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     m_networkView->setBackgroundBrush(QColor(245, 245, 250));
-    m_networkView->setSceneRect(-50, -200, 500, 400);
 }
 
 void MainWindow::onBrowseTrainingData() {
@@ -303,13 +306,21 @@ void MainWindow::onTrain() {
     refreshPredictInputs();
     refreshNetworkVisualization();
     m_trainButton->setEnabled(false);
+    m_cancelButton->setEnabled(true);
+    m_cancelTraining.store(false);
     m_statusLabel->setText(tr("Training..."));
 
     std::thread worker([this, topology, epochs]() {
         int currentEpoch = 0;
         std::vector<double> inputVals, targetVals, resultVals;
+        bool cancelled = false;
 
         while (currentEpoch < epochs) {
+            if (m_cancelTraining.load()) {
+                cancelled = true;
+                break;
+            }
+
             std::size_t count = m_trainingData->getNextInputs(inputVals);
             if (count != static_cast<std::size_t>(topology[0])) {
                 currentEpoch++;
@@ -327,15 +338,27 @@ void MainWindow::onTrain() {
         }
 
         double finalError = m_net->getRecentAverageError();
-        QMetaObject::invokeMethod(this, [this, finalError]() {
+        QMetaObject::invokeMethod(this, [this, finalError, cancelled]() {
             m_trainButton->setEnabled(true);
-            m_statusLabel->setText(tr("Training complete"));
-            m_errorLabel->setText(tr("Final error: %1").arg(finalError));
+            m_cancelButton->setEnabled(false);
+            if (cancelled) {
+                m_statusLabel->setText(tr("Training cancelled"));
+                m_errorLabel->setText(tr("Error at cancellation: %1").arg(finalError));
+            } else {
+                m_statusLabel->setText(tr("Training complete"));
+                m_errorLabel->setText(tr("Final error: %1").arg(finalError));
+            }
             refreshPredictInputs();
             refreshNetworkVisualization();
         }, Qt::QueuedConnection);
     });
     worker.detach();
+}
+
+void MainWindow::onCancelTraining() {
+    m_cancelTraining.store(true);
+    m_cancelButton->setEnabled(false);
+    m_statusLabel->setText(tr("Cancelling..."));
 }
 
 void MainWindow::refreshNetworkVisualization() const {
@@ -344,6 +367,9 @@ void MainWindow::refreshNetworkVisualization() const {
     } else {
         m_networkScene->setNet(nullptr);
     }
+    QRectF bounds = m_networkScene->itemsBoundingRect();
+    bounds.adjust(-50, -50, 50, 50);
+    m_networkScene->setSceneRect(bounds);
 }
 
 void MainWindow::refreshPredictInputs() {
