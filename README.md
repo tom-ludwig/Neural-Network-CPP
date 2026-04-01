@@ -2,6 +2,13 @@
 
 A neural network with Qt GUI for training and visualization. Includes XOR gate and support for more datasets (e.g. handwritten digits).
 
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/f6b7086d-3243-4b37-a50a-6d042522bb12" width="800"></td>
+    <td><img src="https://github.com/user-attachments/assets/5155181d-dd9b-4179-b87b-f00e0bd19a7d" width="800"></td>
+  </tr>
+</table>
+
 ## Usage (GUI)
 
 (Run `./NeuralNetworkGUI`)
