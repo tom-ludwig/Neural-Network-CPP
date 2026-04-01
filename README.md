@@ -2,6 +2,25 @@
 
 A neural network with Qt GUI for training and visualization. Includes XOR gate and support for more datasets (e.g. handwritten digits).
 
+## Usage (GUI)
+
+(Run `./NeuralNetworkGUI`)
+
+1. **Topology** – Configure layers (default: 2-4-1 for XOR)
+2. **Training Data** – Browse to select a `.txt` file (e.g. `data/xor.txt` or `data/digits.txt`)
+3. **Load from file** – Load topology from the training file
+4. **Create Network** – Build network from topology
+5. **Train** – Train on the selected data
+6. **Test / Predict** – Enter inputs and run a forward pass
+7. **Click input neurons** – Edit values directly in the visualization
+
+With the digits dataset a small 8×8 drawing canvas is available for live prediction. Accuracy hovers around 90%; not ideal, but impressive for a from scratch implementation. Recognition is especially strong for digits like `8`, even with distorted or incomplete inputs.
+
+## Requirements
+
+- `cmake` and `make`
+- `Qt` for GUI
+
 ## Project Structure
 
 ```
@@ -27,6 +46,7 @@ cmake --build .
 ```
 
 **macOS (Qt):**
+
 ```sh
 cmake -B build -DCMAKE_PREFIX_PATH=$(brew --prefix qt@6)
 cmake --build build
@@ -35,11 +55,13 @@ cmake --build build
 ## Run
 
 **GUI (recommended):**
+
 ```sh
 ./build/NeuralNetworkGUI
 ```
 
 **CLI:**
+
 ```sh
 # Run from project root so data/xor.txt is found
 ./build/NeuralNetCLI
@@ -48,28 +70,22 @@ cmake --build build
 ## Generate Training Data
 
 **XOR gate:**
+
 ```sh
 ./build/GenerateXorData > data/xor.txt
 ```
 
 **Handwritten digits (8×8, 10 classes):**
+
 ```sh
 ./build/GenerateDigitsData > data/digits.txt
 ```
+
 Uses embedded synthetic patterns (500 samples). For the full 1,797-sample UCI dataset, download `optdigits.tes` from [UCI](https://archive.ics.uci.edu/ml/machine-learning-databases/optdigits/), place in `data/`, and run:
+
 ```sh
 ./build/GenerateDigitsData data/optdigits.tes > data/digits.txt
 ```
-
-## Usage (GUI)
-
-1. **Topology** – Configure layers (default: 2-4-1 for XOR)
-2. **Training Data** – Browse to select a `.txt` file (e.g. `data/xor.txt`)
-3. **Load from file** – Load topology from the training file
-4. **Create Network** – Build network from topology
-5. **Train** – Train on the selected data
-6. **Test / Predict** – Enter inputs and run a forward pass
-7. **Click input neurons** – Edit values directly in the visualization
 
 ## Data Format
 
