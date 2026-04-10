@@ -55,6 +55,13 @@ add_executable(NeuralNetworkGUI
 )
 target_link_libraries(NeuralNetworkGUI PRIVATE Qt6::Widgets)
 
+if(APPLE)
+    set_target_properties(NeuralNetworkGUI PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.neuralnetwork.gui"
+    )
+endif()
+
 # Training data generators
 add_executable(GenerateXorData tools/generateXorData.cpp)
 add_executable(GenerateDigitsData tools/generateDigitsData.cpp)

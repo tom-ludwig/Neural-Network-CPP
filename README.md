@@ -52,6 +52,13 @@ cmake ..
 cmake --build .
 ```
 
+**GUI only (Release):**
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target NeuralNetworkGUI
+```
+
 **macOS (Qt):**
 
 ```sh
@@ -64,6 +71,10 @@ cmake --build build
 **GUI (recommended):**
 
 ```sh
+# macOS (.app bundle)
+open build/NeuralNetworkGUI.app
+
+# Linux / other (plain executable)
 ./build/NeuralNetworkGUI
 ```
 
